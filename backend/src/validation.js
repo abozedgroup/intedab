@@ -1,7 +1,7 @@
 const HOSPITALS = ["شقراء", "مرات", "ثادق"];
 const DELEGATION_TYPES = ["حالة اسعافية", "مهمة داخلية"];
 const NATIONAL_ID_REGEX = /^\d{10}$/;
-const EMAIL_LOCAL_PART_REGEX = /^[^\s@]+$/;
+const EMAIL_LOCAL_PART_REGEX = /^[a-z0-9._-]+$/;
 
 /**
  * تنظيف النصوص المدخلة.
@@ -40,7 +40,9 @@ function validateEmployee(employee) {
   }
 
   if (!EMAIL_LOCAL_PART_REGEX.test(cleanString(employee.email))) {
-    errors.push("البريد الإلكتروني يجب أن يحتوي على الجزء قبل @ فقط.");
+    errors.push(
+      "البريد الإلكتروني يجب أن يحتوي على أحرف إنجليزية/أرقام فقط قبل @ (يسمح بـ . _ -)."
+    );
   }
 
   if (!HOSPITALS.includes(cleanString(employee.hospital))) {

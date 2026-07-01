@@ -47,7 +47,7 @@ function App() {
   }
 
   function normalizeEmailLocalPart(value) {
-    return value.trim().split("@")[0].toLowerCase();
+    return value.trim().split("@")[0].toLowerCase().replace(/[^a-z0-9._-]/g, "");
   }
 
   function updateDelegationField(index, field, value) {
@@ -314,9 +314,10 @@ function App() {
                 type="text"
                 inputMode="email"
                 autoCapitalize="none"
-                pattern="^[^\\s@]+$"
-                title="أدخل اسم المستخدم قبل @ فقط"
-                placeholder="username"
+                dir="ltr"
+                pattern="^[A-Za-z0-9._-]+$"
+                title="أدخل أحرفًا إنجليزية/أرقام فقط قبل @ (يسمح بـ . _ -)"
+                placeholder="username (English only)"
                 value={employee.email}
                 onChange={(event) =>
                   updateEmployeeField("email", normalizeEmailLocalPart(event.target.value))
