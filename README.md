@@ -44,6 +44,7 @@ npm run dev
 3. أضف متغيرات البيئة في الخدمة:
    - `EXPORT_PASSWORD` = كلمة مرور التصدير
    - `DB_PATH` = `/data/entedab.sqlite`
+   - `NIXPACKS_NODE_VERSION` = `20.19.0`
 4. أضف **Volume** داخل نفس الخدمة، واجعل مساره: `/data`
 5. نفّذ Deploy.
 
