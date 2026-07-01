@@ -8,6 +8,34 @@ const {
 } = require("./validation");
 
 const router = express.Router();
+const MOH_EMAIL_SUFFIX = "@MOH.GOV.SA";
+const MOH_EMAIL_SUFFIX_LOWER = MOH_EMAIL_SUFFIX.toLowerCase();
+
+/**
+ * استخراج الجزء الأول من البريد (قبل @) بصيغة موحدة.
+ * @param {unknown} email
+ * @returns {string}
+ */
+function extractEmailLocalPart(email) {
+  const cleaned = cleanString(email).toLowerCase();
+  if (!cleaned) {
+    return "";
+  }
+  if (cleaned.endsWith(MOH_EMAIL_SUFFIX_LOWER)) {
+    return cleaned.slice(0, -MOH_EMAIL_SUFFIX_LOWER.length);
+  }
+  const atIndex = cleaned.indexOf("@");
+  return atIndex === -1 ? cleaned : cleaned.slice(0, atIndex);
+}
+
+/**
+ * بناء البريد الرسمي للموظف بصيغة الوزارة.
+ * @param {string} localPart
+ * @returns {string}
+ */
+function buildMohEmail(localPart) {
+  return `${extractEmailLocalPart(localPart)}${MOH_EMAIL_SUFFIX}`;
+}
 
 /**
  * تجهيز بيانات الموظف بشكل موحد قبل الحفظ.
@@ -19,7 +47,7 @@ function normalizeEmployee(employee) {
     national_id: cleanString(employee.national_id),
     full_name: cleanString(employee.full_name),
     job_title: cleanString(employee.job_title),
-    email: cleanString(employee.email),
+    email: extractEmailLocalPart(employee.email),
     phone: cleanString(employee.phone),
     hospital: cleanString(employee.hospital),
   };
@@ -66,7 +94,10 @@ router.get("/employees/:employeeNumber", async (req, res) => {
     );
 
     res.json({
-      employee,
+      employee: {
+        ...employee,
+        email: extractEmailLocalPart(employee.email),
+      },
       delegations,
     });
   } catch (error) {
@@ -84,6 +115,7 @@ router.post("/employees/upsert", async (req, res) => {
     const delegationsInput = Array.isArray(req.body?.delegations)
       ? req.body.delegations.map(normalizeDelegation)
       : [];
+    const normalizedEmployeeEmail = buildMohEmail(employeeInput.email);
 
     const errors = validateEmployee(employeeInput);
     delegationsInput.forEach((delegation) => {
@@ -133,7 +165,7 @@ router.post("/employees/upsert", async (req, res) => {
           employeeInput.national_id,
           employeeInput.full_name,
           employeeInput.job_title,
-          employeeInput.email,
+          normalizedEmployeeEmail,
           employeeInput.phone,
           employeeInput.hospital,
           employeeId,
@@ -150,7 +182,7 @@ router.post("/employees/upsert", async (req, res) => {
           employeeInput.national_id,
           employeeInput.full_name,
           employeeInput.job_title,
-          employeeInput.email,
+          normalizedEmployeeEmail,
           employeeInput.phone,
           employeeInput.hospital,
         ]
@@ -192,7 +224,10 @@ router.post("/employees/upsert", async (req, res) => {
 
     res.json({
       message: "تم حفظ البيانات بنجاح.",
-      employee,
+      employee: {
+        ...employee,
+        email: extractEmailLocalPart(employee.email),
+      },
       delegations,
     });
   } catch (error) {

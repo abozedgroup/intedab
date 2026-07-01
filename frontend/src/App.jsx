@@ -21,7 +21,6 @@ const INITIAL_DELEGATION = {
   to_entity: "",
 };
 const EXPORT_PAGE_PATH = "/owner-export-2026";
-const MOH_EMAIL_SUFFIX_REGEX = /@moh\.gov\.sa$/i;
 
 function App() {
   const currentPath = typeof window !== "undefined" ? window.location.pathname : "/";
@@ -45,6 +44,10 @@ function App() {
 
   function updateEmployeeField(field, value) {
     setEmployee((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function normalizeEmailLocalPart(value) {
+    return value.trim().split("@")[0].toLowerCase();
   }
 
   function updateDelegationField(index, field, value) {
@@ -90,7 +93,7 @@ function App() {
         national_id: data.employee.national_id || "",
         full_name: data.employee.full_name || "",
         job_title: data.employee.job_title || "",
-        email: data.employee.email || "",
+        email: normalizeEmailLocalPart(data.employee.email || ""),
         phone: data.employee.phone || "",
         hospital: data.employee.hospital || HOSPITAL_OPTIONS[0],
       });
@@ -107,11 +110,6 @@ function App() {
 
   async function saveAllData(event) {
     event.preventDefault();
-    if (!MOH_EMAIL_SUFFIX_REGEX.test(employee.email.trim())) {
-      showMessage("البريد الإلكتروني يجب أن ينتهي بـ @MOH.GOV.SA.", "error");
-      return;
-    }
-
     if (!commitmentAccepted) {
       showMessage(
         "يرجى الإقرار بصحة البيانات وعدم إدخال الانتدابات في موارد سابقًا أو ترصيدها كإجازات.",
@@ -128,7 +126,10 @@ function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          employee,
+          employee: {
+            ...employee,
+            email: normalizeEmailLocalPart(employee.email),
+          },
           delegations,
         }),
       });
@@ -147,7 +148,7 @@ function App() {
         national_id: result.employee.national_id,
         full_name: result.employee.full_name,
         job_title: result.employee.job_title,
-        email: result.employee.email,
+        email: normalizeEmailLocalPart(result.employee.email),
         phone: result.employee.phone,
         hospital: result.employee.hospital,
       });
@@ -307,17 +308,19 @@ function App() {
               />
             </div>
             <div className="field">
-              <label>البريد الإلكتروني *</label>
+              <label>البريد الإلكتروني * (قبل @ فقط)</label>
               <input
                 required
-                type="email"
+                type="text"
                 inputMode="email"
                 autoCapitalize="none"
-                pattern="^[^\\s@]+@moh\\.gov\\.sa$"
-                title="يجب أن ينتهي البريد بـ @MOH.GOV.SA"
-                placeholder="name@MOH.GOV.SA"
+                pattern="^[^\\s@]+$"
+                title="أدخل اسم المستخدم قبل @ فقط"
+                placeholder="username"
                 value={employee.email}
-                onChange={(event) => updateEmployeeField("email", event.target.value)}
+                onChange={(event) =>
+                  updateEmployeeField("email", normalizeEmailLocalPart(event.target.value))
+                }
               />
             </div>
             <div className="field">

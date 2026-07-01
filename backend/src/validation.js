@@ -1,8 +1,7 @@
 const HOSPITALS = ["شقراء", "مرات", "ثادق"];
 const DELEGATION_TYPES = ["حالة اسعافية", "مهمة داخلية"];
 const NATIONAL_ID_REGEX = /^\d{10}$/;
-const SIMPLE_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MOH_EMAIL_SUFFIX_REGEX = /@moh\.gov\.sa$/i;
+const EMAIL_LOCAL_PART_REGEX = /^[^\s@]+$/;
 
 /**
  * تنظيف النصوص المدخلة.
@@ -40,10 +39,8 @@ function validateEmployee(employee) {
     errors.push("رقم الهوية يجب أن يحتوي على 10 أرقام فقط.");
   }
 
-  if (!SIMPLE_EMAIL_REGEX.test(cleanString(employee.email))) {
-    errors.push("صيغة البريد الإلكتروني غير صحيحة.");
-  } else if (!MOH_EMAIL_SUFFIX_REGEX.test(cleanString(employee.email))) {
-    errors.push("البريد الإلكتروني يجب أن ينتهي بـ @MOH.GOV.SA.");
+  if (!EMAIL_LOCAL_PART_REGEX.test(cleanString(employee.email))) {
+    errors.push("البريد الإلكتروني يجب أن يحتوي على الجزء قبل @ فقط.");
   }
 
   if (!HOSPITALS.includes(cleanString(employee.hospital))) {
